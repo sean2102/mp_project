@@ -10,6 +10,7 @@ import networkx as nx
 import matplotlib.pyplot as plt  
 from matplotlib.lines import Line2D  
 import numpy as np
+import math
 
 
 def plot_graph(graph_file_path,mat_file_path):
@@ -17,38 +18,49 @@ def plot_graph(graph_file_path,mat_file_path):
     G = nx.read_graphml(graph_file_path)
     
     node_data = {} 
-    for n,data in G.node.items():
-        node_data[n] = data['coords']
+    for n in G.nodes:
+        node_data[n] = G.nodes[n]['coords']
     
-    edge_data={}
-    for n,data in G.edges.items():
-        edge_data[n] = data
+    edge_data=list(G.edges)
     
-    z=[]
-    for n in edge_data:
-        z.append(n)
         
     ########################plot graph################################
     fig=plt.figure()
     fig.clf()
     
-    x=np.zeros(shape=G.number_of_nodes())
-    y=np.zeros(shape=G.number_of_nodes())
-    
-    i=0
-    for k in node_data:
-        x[i]=node_data[k].split(",")[0] 
-        y[i]=node_data[k].split(",")[1]
-        i=i+1
-    
-    plt.scatter(x, y)
-    #plt.axis('scaled')
+    xtotal=np.zeros(shape=G.number_of_nodes())
+    ytotal=np.zeros(shape=G.number_of_nodes())
     
     ax = fig.add_subplot(111)
     
-    for i in z:
-        pt1=i[0]
-        pt2=i[1]
+    i=0
+    for k in node_data:
+        xt=float(node_data[k].split(",")[0])
+        yt=float(node_data[k].split(",")[1])
+        at=float(node_data[k].split(",")[2])
+        #print(xt)
+        #print(xt+0.1*math.cos(at))
+        #print(yt)
+        #print(yt+0.1*math.sin(at))
+        #print("next")
+        ax.annotate("",
+            xy=(xt+0.1*math.cos(at), yt+0.1*math.sin(at)), xycoords='data',
+            xytext=(xt, yt), textcoords='data',
+            arrowprops=dict(arrowstyle="->", connectionstyle="arc3"),)
+        xtotal[i]=xt
+        ytotal[i]=yt
+        i=i+1
+
+    
+    plt.scatter(xtotal, ytotal)
+    #plt.axis('scaled')
+    
+    
+    
+    z=len(edge_data)
+    
+    for i in range(z):
+        pt1,pt2=edge_data[i]
         pt1=node_data[pt1].split(",")[0:2]
         pt2=node_data[pt2].split(",")[0:2]
         x1,y1=pt1
@@ -62,7 +74,8 @@ def plot_graph(graph_file_path,mat_file_path):
     plt.plot(ax,ay,'r')
     #plt.axis('scaled')
     plt.show()
-    plt.savefig('hi.jpg', bbox_inches='tight', pad_inches=0)   
+    #plt.savefig('hi.jpg', bbox_inches='tight', pad_inches=0)   
+    plt.savefig('hi.jpg',dpi=100)   
     
         
 

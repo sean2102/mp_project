@@ -17,7 +17,7 @@ except ImportError:
     from ompl import util as ou
     from ompl import base as ob
     from ompl import geometric as og
-from math import sqrt
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
@@ -25,43 +25,48 @@ from matplotlib.lines import Line2D
 import networkx as nx
 
 
-def plot_graph(graph_file_path,mat_file_path):
+def plot_graph(graph_file_path,mat_file_path,arrowlen):
     
     G = nx.read_graphml(graph_file_path)
     
     node_data = {} 
-    for n,data in G.node.items():
-        node_data[n] = data['coords']
+    for n in G.nodes:
+        node_data[n] = G.nodes[n]['coords']
     
-    edge_data={}
-    for n,data in G.edges.items():
-        edge_data[n] = data
+    edge_data=list(G.edges)
     
-    z=[]
-    for n in edge_data:
-        z.append(n)
         
     ########################plot graph################################
     
     fig=plt.figure()
     fig.clf()
     
-    x=np.zeros(shape=G.number_of_nodes())
-    y=np.zeros(shape=G.number_of_nodes())
-    
-    i=0
-    for k in node_data:
-        x[i]=node_data[k].split(",")[0] 
-        y[i]=node_data[k].split(",")[1]
-        i=i+1
-    
-    plt.scatter(x, y)
+    xtotal=np.zeros(shape=G.number_of_nodes())
+    ytotal=np.zeros(shape=G.number_of_nodes())
     
     ax = fig.add_subplot(111)
     
-    for i in z:
-        pt1=i[0]
-        pt2=i[1]
+    i=0
+    for k in node_data:
+        xt=float(node_data[k].split(",")[0])
+        yt=float(node_data[k].split(",")[1])
+        at=float(node_data[k].split(",")[2])
+        ax.annotate("",
+            xy=(xt+arrowlen*math.cos(at), yt+arrowlen*math.sin(at)), xycoords='data',
+            xytext=(xt, yt), textcoords='data',
+            arrowprops=dict(arrowstyle="->", connectionstyle="arc3"),)
+        xtotal[i]=xt
+        ytotal[i]=yt
+        i=i+1
+
+    
+    plt.scatter(xtotal, ytotal)
+    #plt.axis('scaled')
+    
+    z=len(edge_data)
+    
+    for i in range(z):
+        pt1,pt2=edge_data[i]
         pt1=node_data[pt1].split(",")[0:2]
         pt2=node_data[pt2].split(",")[0:2]
         x1,y1=pt1
@@ -96,7 +101,7 @@ class ValidityChecker(ob.StateValidityChecker):
         y = state.getY()
  
         # Distance formula between two points, offset by the circle's radius
-        return sqrt((x-0.5)*(x-0.5) + (y-0.5)*(y-0.5)) - 0.25
+        return math.sqrt((x-0.5)*(x-0.5) + (y-0.5)*(y-0.5)) - 0.25
 
 
 ## Returns a structure representing the optimization objective to use
@@ -331,7 +336,7 @@ objective='PathLength'
 #(Optional) Specify the optimization objective, defaults to PathLength if not given.
 #choices=['PathClearance', 'PathLength', 'ThresholdPathLength','WeightedLengthAndClearanceCombo']
      
-file='/home/sean/scripts/mat.txt'
+file='/home/sean/scripts/mp_project/mat.txt'
 #(Optional) Specify an output path for the found solution path.
 
 #info=0
@@ -353,10 +358,9 @@ file='/home/sean/scripts/mat.txt'
 plan(runtime, planner, objective, file) 
 graph_file_path="graph.graphml"
 mat_file_path="mat.txt"
-plot_graph(graph_file_path,mat_file_path)
-circle1 = plt.Circle((0.5, 0.5), 0.25, color='g')
+plot_graph(graph_file_path,mat_file_path,0.09)
 
-
-ax = fig.gca()
-ax.add_artist(circle1)
-fig.savefig('plotcircles.png')
+#circle1 = plt.Circle((0.5, 0.5), 0.25, color='g')
+#ax = fig.gca()
+#ax.add_artist(circle1)
+#fig.savefig('plotcircles.png')
